@@ -1,25 +1,28 @@
-const User = require("../models/user.model");
-const bcrypt = require("bcrypt");
-const { createSecretToken } = require("../utils");
+import { Request, Response } from "express";
+import bcrypt from "bcrypt";
+import { IUser } from "../models/interfaces";
+import User from "../models/user.model";
+import { createSecretToken } from "../utils";
 
-const userSignup = async (req, res) => {
+const userSignup = async (req: Request, res: Response): Promise<Response> => {
   const { firstName, lastName, email, password, role } = req.body;
   console.log(req.body);
-  const userExists = await User.findOne({ email });
+  const userExists: IUser | null = await User.findOne({ email });
   console.log({ userExists });
 
   if (userExists) {
     return res.json({ message: "user already exists" });
   }
-  const user = await User.create({
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = (await User.create({
     firstName,
     lastName,
     email,
-    password,
+    password: hashedPassword,
     role,
-  });
-  const token = createSecretToken({ _id: user._id, role: user.role });
-  res.status(201).json({
+  })) as IUser;
+  const token: string = createSecretToken({ _id: user._id, role: user.role });
+  return res.status(201).json({
     message: "User signed in successfully",
     success: true,
     user: {
@@ -31,16 +34,16 @@ const userSignup = async (req, res) => {
   });
 };
 
-const login = async (req, res) => {
+const login = async (req: Request, res: Response): Promise<Response> => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
+  const user: IUser | null = await User.findOne({ email });
   console.log("ffound::", user);
 
   if (!user) {
     return res.status(400).json({ message: "user not found" });
   }
 
-  const isMatch = await bcrypt.compare(password, user.password);
+  const isMatch: boolean = await bcrypt.compare(password, user.password);
 
   console.log({ isMatch });
 
@@ -49,7 +52,7 @@ const login = async (req, res) => {
   }
 
   const token = createSecretToken({ _id: user._id, role: user.role });
-  res.status(201).json({
+  return res.status(201).json({
     message: "User signed in successfully",
     success: true,
     user: {
@@ -61,7 +64,4 @@ const login = async (req, res) => {
   });
 };
 
-module.exports = {
-  userSignup,
-  login,
-};
+export { userSignup, login };
