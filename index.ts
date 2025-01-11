@@ -5,11 +5,15 @@ import productRoutes from "./routes/product.route";
 import userRoutes from "./routes/user.route";
 import categoryRoutes from "./routes/category.route";
 import cartRoutes from "./routes/cart.route";
+import orderRoutes from "./routes/order.routes";
+import multer from "multer";
+import path from "path";
 dotenv.config();
 
 const app: Application = express();
 
 app.use(express.json());
+app.use("/uploads", express.static("uploads"));
 
 mongoose
   .connect(
@@ -27,3 +31,4 @@ app.use(productRoutes);
 app.use(userRoutes);
 app.use(categoryRoutes);
 app.use(cartRoutes);
+app.use(orderRoutes);

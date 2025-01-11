@@ -11,6 +11,7 @@ export interface IProduct {
   quantity: number;
   price: number;
   image?: string;
+  description: string;
   category: mongoose.Schema.Types.ObjectId;
 }
 

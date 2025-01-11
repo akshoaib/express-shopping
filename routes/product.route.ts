@@ -8,12 +8,13 @@ import {
   deleteProduct,
   createProduct,
 } from "../controllers/product.controller";
-import { adminRoleMiddleware, authMiddleware } from "../utils";
+import { adminRoleMiddleware, authMiddleware, uploadImage } from "../utils";
 
 router.post(
   "/product/create",
   authMiddleware,
   adminRoleMiddleware,
+  uploadImage.single("image"),
   (req: Request, res: Response, next: NextFunction) => createProduct(req, res)
 );
 

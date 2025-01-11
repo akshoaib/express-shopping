@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import multer from "multer";
+import path from "path";
 
 interface User {
   _id: string;
@@ -28,14 +30,11 @@ const authMiddleware = (
     return;
   }
   try {
-    console.log("in auth");
     const decoded = jwt.verify(token, process.env.SECRET_KEY as string);
-    console.log({ decoded });
 
     req.user = decoded;
     next();
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: (error as Error).message });
   }
 };
@@ -52,9 +51,48 @@ const adminRoleMiddleware = (
     }
     next();
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: (error as Error).message });
   }
 };
+const storage: multer.StorageEngine = multer.diskStorage({
+  destination: (
+    req: Request,
+    file: Express.Multer.File,
+    cb: (error: Error | null, destination: string) => void
+  ): void => {
+    cb(null, "uploads"); // Specify folder where images should be saved
+  },
+  filename: (
+    req: Request,
+    file: Express.Multer.File,
+    cb: (error: Error | null, filename: string) => void
+  ): void => {
+    // Define file name using original name and adding timestamp to avoid duplicates
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
 
-export { createSecretToken, authMiddleware, adminRoleMiddleware };
+// Create Multer upload instance
+const uploadImage: multer.Multer = multer({
+  storage: storage,
+  fileFilter: (
+    req: Request,
+    file: Express.Multer.File,
+    cb: multer.FileFilterCallback
+  ): void => {
+    // Only accept image files (jpg, jpeg, png, gif)
+    const fileTypes = /jpeg|jpg|png|gif/;
+    const extname = fileTypes.test(
+      path.extname(file.originalname).toLowerCase()
+    );
+    const mimetype = fileTypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      return cb(new Error("Only images are allowed"));
+    }
+  },
+});
+
+export { createSecretToken, authMiddleware, adminRoleMiddleware, uploadImage };

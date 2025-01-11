@@ -4,7 +4,6 @@ import Category from "../models/category.model";
 const createCategory = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name } = req.body;
-    console.log(req.body);
     const categoryExists = await Category.findOne({ name });
     console.log({ categoryExists });
 
