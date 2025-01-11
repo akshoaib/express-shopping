@@ -55,6 +55,7 @@ const orderSchema: Schema = new mongoose.Schema({
   paymentType: {
     type: String,
     enum: ["cod", "card"],
+    default: "cod",
     required: true,
   },
   orderStatus: [

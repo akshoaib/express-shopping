@@ -7,8 +7,17 @@ const createProduct = async (
   res: Response
 ) => {
   try {
-    const product = await Product.create(req.body);
-    res.status(200).json({ message: "product created successfully" });
+    const { name, description, price, category } = req.body;
+    const newProduct = new Product({
+      name,
+      description,
+      price,
+      category,
+      image: req.file ? req.file.path : "", // Save the file path
+    });
+
+    const product = await newProduct.save();
+    res.status(200).json({ message: "product created successfully", product });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
@@ -37,7 +46,6 @@ const getProducts = async (
     if (maxPrice) {
       filter.price = { ...filter.price, $lte: maxPrice };
     }
-    console.log("heyy", req.body);
     const products = await Product.find(filter)
       .skip((page - 1) * limit)
       .limit(Number(limit))
@@ -68,7 +76,6 @@ const updateProduct = async (
   res: Response
 ) => {
   try {
-    console.log("heyy", req.body);
     const { id } = req.params;
     const product = await Product.findByIdAndUpdate(id, req.body);
     if (!product) {
@@ -84,7 +91,6 @@ const updateProduct = async (
 
 const deleteProduct = async (req: Request, res: Response) => {
   try {
-    console.log("heyy", req.body);
     const { id } = req.params;
     const product = await Product.findByIdAndDelete(id);
     if (!product) {
