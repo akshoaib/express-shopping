@@ -1,5 +1,14 @@
-const mongoose = require("mongoose");
-const ProductSchema = mongoose.Schema(
+import mongoose, { Document, Schema } from "mongoose";
+
+interface IProduct extends Document {
+  name: string;
+  quantity: number;
+  price: number;
+  image?: string;
+  category: mongoose.Schema.Types.ObjectId;
+}
+
+const ProductSchema: Schema = new Schema(
   {
     name: {
       type: String,
@@ -29,5 +38,5 @@ const ProductSchema = mongoose.Schema(
   }
 );
 
-const Product = mongoose.model("product", ProductSchema);
-module.exports = Product;
+const Product = mongoose.model<IProduct>("Product", ProductSchema);
+export default Product;

@@ -1,6 +1,16 @@
-const mongoose = require("mongoose");
+import mongoose, { Document, Schema } from "mongoose";
 
-const cartSchema = mongoose.Schema(
+interface CartItem {
+  product: mongoose.Schema.Types.ObjectId;
+  quantity: number;
+}
+
+interface CartDocument extends Document {
+  user: mongoose.Schema.Types.ObjectId;
+  cartItems: CartItem[];
+}
+
+const cartSchema: Schema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -26,6 +36,6 @@ const cartSchema = mongoose.Schema(
   }
 );
 
-const Cart = mongoose.model("cart", cartSchema);
+const Cart = mongoose.model<CartDocument>("cart", cartSchema);
 
-module.exports = Cart;
+export default Cart;

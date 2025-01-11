@@ -1,6 +1,27 @@
-const mongoose = require("mongoose");
+import mongoose, { Document, Schema } from "mongoose";
 
-const orderSchema = mongoose.Schema({
+interface OrderItem {
+  productId: mongoose.Schema.Types.ObjectId;
+  payablePrice: number;
+  purchasedQty: number;
+}
+
+interface OrderStatus {
+  type: "ordered" | "packed" | "shipped" | "delivered";
+  date: Date;
+  isCompleted: boolean;
+}
+
+interface Order extends Document {
+  user: mongoose.Schema.Types.ObjectId;
+  totalAmount: number;
+  items: OrderItem[];
+  paymentStatus: "pending" | "completed" | "cancelled" | "refund";
+  paymentType: "cod" | "card";
+  orderStatus: OrderStatus[];
+}
+
+const orderSchema: Schema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -54,5 +75,5 @@ const orderSchema = mongoose.Schema({
   ],
 });
 
-const Order = mongoose.model("order", orderSchema);
-module.exports = Order;
+const Order = mongoose.model<Order>("Order", orderSchema);
+export default Order;
