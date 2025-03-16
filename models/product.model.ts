@@ -6,6 +6,14 @@ interface IProduct extends Document {
   price: number;
   image?: string;
   category: mongoose.Schema.Types.ObjectId;
+  rating: number;
+  reviews: {
+    user: mongoose.Schema.Types.ObjectId;
+    name: string;
+    rating: number;
+    comment: string;
+    createdAt: Date;
+  }[];
 }
 
 const ProductSchema: Schema = new Schema(
@@ -24,14 +32,46 @@ const ProductSchema: Schema = new Schema(
       required: true,
       default: 0,
     },
-    image: {
-      type: String,
-      required: false,
+
+    images: {
+      type: [String],
+      required: [true, "Please enter at least one image"],
     },
+
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
     },
+    rating: {
+      type: Number,
+      default: 0,
+    },
+    reviews: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "user",
+          required: true,
+        },
+        name: {
+          type: String,
+        },
+        rating: {
+          type: Number,
+          required: true,
+          min: [0, "Rating cannot be less than 0."],
+          max: [4, "Rating cannot exceed 4."],
+        },
+        comment: {
+          type: String,
+          required: true,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
     timestamps: true,

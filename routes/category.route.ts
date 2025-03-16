@@ -3,12 +3,15 @@ import {
   createCategory,
   getAllCategories,
   getCategoryByName,
+  getCategoryDropdown,
 } from "../controllers/category.controller";
+import { uploadImage } from "../utils";
 
 const router = express.Router();
 
 router.post(
   "/category/create",
+  uploadImage.single("image"),
   (req: Request, res: Response, next: NextFunction) => {
     createCategory(req, res);
   }
@@ -25,6 +28,13 @@ router.get(
   "/category/get-all",
   (req: Request, res: Response, next: NextFunction) => {
     getAllCategories(req, res);
+  }
+);
+
+router.get(
+  "/category/dropdown",
+  (req: Request, res: Response, next: NextFunction) => {
+    getCategoryDropdown(req, res);
   }
 );
 

@@ -7,8 +7,8 @@ import {
   TypedRequestBody,
 } from "../models/interfaces"; // Assuming you have these interfaces defined
 
-const Cart = require("../models/cart.model");
-const Product = require("../models/product.model");
+import Cart from "../models/cart.model";
+import Product from "../models/product.model";
 
 const addToCart = async (
   req: TypedRequestBody<CartItem>,
@@ -27,7 +27,14 @@ const addToCart = async (
       if (!cart) {
         const newCart = await Cart.create({
           user,
-          cartItems: [{ product: productId, quantity }],
+          cartItems: [
+            {
+              product: productId,
+              quantity,
+              price: productExists.price * quantity,
+            },
+          ],
+          totalPrice: productExists.price * quantity,
         });
         return res
           .status(201)
@@ -37,21 +44,47 @@ const addToCart = async (
           (item) =>
             item.product && item.product.toString() === productId.toString()
         );
-        console.log({ items });
+        let total = cart.cartItems?.reduce((acc, item) => {
+          if (item?.product?.toString() !== productId?.toString()) {
+            acc = acc + (item.price ?? 0);
+          }
+
+          return acc;
+        }, 0);
+
+        console.log({ total });
 
         if (items) {
-          const updatedCart = await Cart.findOneAndUpdate(
-            {
-              user,
-              "cartItems.product": productId,
-            },
-            {
-              $set: {
-                "cartItems.$.quantity": quantity,
+          let updatedCart;
+          if (quantity === 0) {
+            updatedCart = await Cart.findOneAndUpdate(
+              { user: user },
+              {
+                $pull: {
+                  cartItems: {
+                    product: productId,
+                  },
+                },
+                totalPrice: total,
               },
-            },
-            { new: true }
-          );
+              { new: true }
+            );
+          } else {
+            updatedCart = await Cart.findOneAndUpdate(
+              {
+                user,
+                "cartItems.product": productId,
+              },
+              {
+                $set: {
+                  "cartItems.$.quantity": quantity,
+                  "cartItems.$.price": productExists.price * quantity,
+                  totalPrice: total + productExists.price * quantity,
+                },
+              },
+              { new: true }
+            );
+          }
 
           return res
             .status(201)
@@ -66,8 +99,10 @@ const addToCart = async (
                 cartItems: {
                   product: productId,
                   quantity,
+                  price: productExists.price * quantity,
                 },
               },
+              totalPrice: total + productExists.price * quantity,
             },
             { new: true }
           );
@@ -105,7 +140,9 @@ const getCartItems = async (
       { "cartItems._id": 0 }
     );
     console.log(cart);
-    return res.status(200).json({ cart: cart[0]?.cartItems || [] });
+    return res
+      .status(200)
+      .json({ cart: cart[0]?.cartItems || [], total: cart[0]?.totalPrice });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Internal server error" });
@@ -118,9 +155,26 @@ const removeCartItems = async (
 ): Promise<Response> => {
   const productId = req.query.productId as string;
   try {
+    if (!productId) {
+      return res.status(400).json({ message: "Product Id is required" });
+    }
+
     if (!req.user) {
       return res.status(400).json({ message: "User not authenticated" });
     }
+
+    const cart: ICart | null = await Cart.findOne({ user: req.user._id });
+
+    if (!cart) {
+      return res.status(404).json({ message: "Cart not found" });
+    }
+    let total = cart.cartItems?.reduce((acc, item) => {
+      if (item?.product?.toString() !== productId?.toString()) {
+        acc = acc + (item.price ?? 0);
+      }
+
+      return acc;
+    }, 0);
     const updatedCart = await Cart.findOneAndUpdate(
       { user: req.user._id },
       {
@@ -129,6 +183,7 @@ const removeCartItems = async (
             product: productId,
           },
         },
+        totalPrice: total,
       },
       { new: true }
     );

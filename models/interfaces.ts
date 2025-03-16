@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 export interface ICart {
   user: mongoose.Schema.Types.ObjectId;
   cartItems: CartItem[];
+  totalPrice: number;
 }
 
 export interface IProduct {
@@ -35,10 +36,22 @@ export interface CartItem {
   productId: mongoose.Schema.Types.ObjectId;
   quantity: number;
   product?: mongoose.Schema.Types.ObjectId;
+  price?: number;
 }
 
 export interface IProduct {
   name: string;
   price: number;
   category: mongoose.Schema.Types.ObjectId;
+}
+// export interface AddressItem {
+//   city: string;
+//   town: string;
+//   completeAddress: string;
+// }
+
+export interface IAddress {
+  city: string;
+  town: string;
+  completeAddress: string;
 }

@@ -46,17 +46,17 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
   { timestamps: true }
 );
 
-userSchema.pre<IUser>("save", async function () {
-  if (this.isModified("password")) {
-    this.password = await bcrypt.hash(this.password, 12);
-  }
-});
+// userSchema.pre<IUser>("save", async function () {
+//   if (this.isModified("password")) {
+//     this.password = await bcrypt.hash(this.password, 12);
+//   }
+// });
 
-userSchema.methods.authenticate = async function (
-  password: string
-): Promise<boolean> {
-  return await bcrypt.compare(password, this.password);
-};
+// userSchema.methods.authenticate = async function (
+//   password: string
+// ): Promise<boolean> {
+//   return await bcrypt.compare(password, this.password);
+// };
 
 const User = mongoose.model<IUser>("User", userSchema);
 export default User;
