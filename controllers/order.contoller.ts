@@ -1,21 +1,93 @@
-import { OrderTypes } from "../constants";
+import mongoose from "mongoose";
+import { OrderStatusId, OrderTypes, PaymentTypes } from "../constants";
+import Cart from "../models/cart.model";
 import { TypedRequestBody } from "../models/interfaces";
 import Order from "../models/order.model";
 import { Response } from "express";
-
-interface IOrder {
-  user: string;
-  totalAmount: number;
-  items: object[];
-  paymentStatus: string;
-  orderStatus: string;
+import Address from "../models/address.model";
+import Product from "../models/product.model";
+import { PaymentStatusId } from "../constants";
+interface OrderItem {
+  productId: mongoose.Schema.Types.ObjectId;
+  payablePrice: number;
+  purchasedQty: number;
 }
-const addOrder = async (req: TypedRequestBody<IOrder>, res: Response) => {
+
+interface OrderStatus {
+  type: "ordered" | "packed" | "shipped" | "delivered";
+  date: Date;
+  isCompleted: boolean;
+}
+
+interface IOrderDocument extends Document {
+  user: mongoose.Schema.Types.ObjectId;
+  totalAmount: number;
+  items: OrderItem[];
+  paymentStatus: 1 | 2 | 3 | 4;
+  paymentType: "cod" | "card";
+  orderStatus: 1 | 2 | 3 | 4;
+  address: mongoose.Schema.Types.ObjectId;
+  _id: string;
+}
+const getUserCartItems = async (_id: string): Promise<any> => {
+  console.log({ _id });
+
+  const cart = await Cart.findOne({ user: _id });
+
+  let items = cart?.cartItems?.map((itm) => {
+    return {
+      productId: itm.product,
+      payablePrice: itm.price,
+      purchasedQty: itm.quantity,
+    };
+  });
+  return { items, total: cart?.totalPrice };
+};
+
+const addOrder = async (
+  req: TypedRequestBody<any>,
+  res: Response
+): Promise<any> => {
   try {
-    const { user, totalAmount, items } = req.body;
-    const order = await Order.create({ user, totalAmount, items });
+    const user = req.user?._id || "";
+    let address = req.body.address;
+    let cart = await getUserCartItems(user);
+    console.log("user's cart:: ", cart, address);
+    if (cart?.items.length === 0) {
+      return res.status(400).json({ message: "cart is empty!" });
+    }
+
+    const order = await Order.create({
+      user,
+      totalAmount: cart?.total,
+      items: cart?.items,
+      address,
+    });
+
+    if (!order) {
+      return res.status(400).json({ message: "error placing order!" });
+    }
+    //clear the cart
+    await Cart.findOneAndUpdate(
+      { user },
+      {
+        $set: { totalPrice: 0, cartItems: [] },
+      }
+    );
+
+    //decrese the quantity of products in the inverntory
+    cart.items.forEach(async (item: any) => {
+      await Product.findByIdAndUpdate(item.productId, {
+        $inc: { quantity: -item.purchasedQty },
+      });
+    });
+
     res.status(201).json({ message: "order placed!" });
-  } catch (error) {}
+  } catch (error) {
+    res.status(500).json(error);
+
+    console.log({ error });
+  }
 };
 
 const getUserOrders = async (
@@ -29,23 +101,133 @@ const getUserOrders = async (
   } catch (error) {}
 };
 
-const getAllOrders = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const orders = await Order.find({});
-    res.status(200).json({ orders });
-  } catch (error) {}
-};
-
-const updateOrderStatus = async (
-  req: TypedRequestBody<IOrder>,
+const getAllOrders = async (
+  req: TypedRequestBody<{ user: string }>,
   res: Response
 ): Promise<void> => {
   try {
-    const { paymentStatus, orderStatus, user } = req.body;
-    const order = await Order.findByIdAndUpdate(
-      { user, orderStatus: OrderTypes.ORDERED },
+    const orders = await Order.find({}).populate("user", "-password").lean();
+    console.log({ orders });
+    const addressess = await Address.findOne({ user: req.user?._id });
+    let ordersWithAddress;
+    if (addressess?.addressList && addressess.addressList.length > 0) {
+      ordersWithAddress = orders.map((order) => {
+        console.log("rrrrrrrr", order);
+
+        const address = addressess?.addressList.find(
+          (a) => a?._id.toString() === order?.address.toString()
+        );
+        return {
+          ...order,
+          address: address || null,
+        };
+      });
+    }
+    console.log({ ordersWithAddress });
+    const totalOrders = await Order.countDocuments();
+
+    res.status(200).json({
+      data: { orders: ordersWithAddress, total: totalOrders },
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const updateOrderStatus = async (
+  req: TypedRequestBody<IOrderDocument>,
+  res: Response
+): Promise<void> => {
+  try {
+    const { _id, paymentStatus, orderStatus } = req.body;
+    const order = await Order.findById(_id);
+    if (!order) {
+      res.status(400).json({ message: "order not found" });
+      return;
+    }
+
+    if (
+      paymentStatus === PaymentStatusId.COMPLETED &&
+      order?.orderStatus !== OrderStatusId.DELIVERED
+    ) {
+      res
+        .status(400)
+        .json({ message: "payment can not be completed without delivering" });
+      return;
+    }
+
+    if (
+      paymentStatus === PaymentStatusId.REFUND &&
+      order?.paymentStatus !== PaymentStatusId.COMPLETED
+    ) {
+      res
+        .status(400)
+        .json({ message: "payment can not be refunded without completion" });
+      return;
+    }
+    console.log("body::", req.body);
+
+    const updatedOrder = await Order.findByIdAndUpdate(
+      { _id },
       { $set: { paymentStatus, orderStatus } }
     );
-  } catch (error) {}
+
+    res.status(200).json({ message: "order updated", success: true });
+  } catch (error) {
+    console.log(error);
+  }
 };
-export { addOrder, getUserOrders, updateOrderStatus, getAllOrders };
+
+const getOrderStatusDropdown = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  let statusNameKeys = Object.values(OrderTypes);
+  let statusIdKeys = Object.values(OrderStatusId);
+
+  console.log({ statusIdKeys });
+  console.log({ statusNameKeys });
+
+  let mapped = statusIdKeys.map((id, index) => {
+    return {
+      _id: id,
+      name: statusNameKeys[index],
+    };
+  });
+
+  res
+    .status(200)
+    .json({ data: { orderStatusDropdown: mapped }, success: true });
+};
+
+const getPaymentStatusDropdown = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  let statusNameKeys = Object.values(PaymentTypes);
+  let statusIdKeys = Object.values(PaymentStatusId);
+
+  console.log({ statusIdKeys });
+  console.log({ statusNameKeys });
+
+  let mapped = statusIdKeys.map((id, index) => {
+    return {
+      _id: id,
+      name: statusNameKeys[index],
+    };
+  });
+
+  res
+    .status(200)
+    .json({ data: { paymentStatusDropdown: mapped }, success: true });
+};
+
+export {
+  addOrder,
+  getUserOrders,
+  updateOrderStatus,
+  getAllOrders,
+  getOrderStatusDropdown,
+  getPaymentStatusDropdown,
+};

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { IUser } from "../models/interfaces";
 import User from "../models/user.model";
 import { createSecretToken } from "../utils";
@@ -13,12 +13,17 @@ const userSignup = async (req: Request, res: Response): Promise<Response> => {
   if (userExists) {
     return res.json({ message: "user already exists" });
   }
-  const hashedPassword = await bcrypt.hash(password, 10);
+  console.log({ password });
+
+  const saltRounds = 12;
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
+  console.log({ hashedPassword });
+
   const user = (await User.create({
     firstName,
     lastName,
     email,
-    password: hashedPassword,
+    password: await bcrypt.hash(password, saltRounds),
     role,
   })) as IUser;
   const token: string = createSecretToken({ _id: user._id, role: user.role });
@@ -42,6 +47,7 @@ const login = async (req: Request, res: Response): Promise<Response> => {
   if (!user) {
     return res.status(400).json({ message: "user not found" });
   }
+  console.log({ password });
 
   const isMatch: boolean = await bcrypt.compare(password, user.password);
 
@@ -52,15 +58,19 @@ const login = async (req: Request, res: Response): Promise<Response> => {
   }
 
   const token = createSecretToken({ _id: user._id, role: user.role });
+  console.log({ user });
   return res.status(201).json({
     message: "User signed in successfully",
     success: true,
-    user: {
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
+    data: {
+      user: {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+      token,
     },
-    token,
   });
 };
 

@@ -3,11 +3,13 @@ import mongoose, { Document, Schema } from "mongoose";
 interface CartItem {
   product: mongoose.Schema.Types.ObjectId;
   quantity: number;
+  price: number;
 }
 
 interface CartDocument extends Document {
   user: mongoose.Schema.Types.ObjectId;
   cartItems: CartItem[];
+  totalPrice: number;
 }
 
 const cartSchema: Schema = new mongoose.Schema(
@@ -28,8 +30,15 @@ const cartSchema: Schema = new mongoose.Schema(
           type: Number,
           default: 1,
         },
+        price: {
+          type: Number,
+        },
       },
     ],
+    totalPrice: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

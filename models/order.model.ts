@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
+import { OrderStatusId, PaymentStatusId } from "../constants";
 
 interface OrderItem {
   productId: mongoose.Schema.Types.ObjectId;
@@ -6,19 +7,21 @@ interface OrderItem {
   purchasedQty: number;
 }
 
-interface OrderStatus {
-  type: "ordered" | "packed" | "shipped" | "delivered";
-  date: Date;
-  isCompleted: boolean;
-}
+// interface OrderStatus {
+//   type: "ordered" | "packed" | "shipped" | "delivered";
+//   date: Date;
+//   isCompleted: boolean;
+// }
 
 interface Order extends Document {
   user: mongoose.Schema.Types.ObjectId;
+  address: mongoose.Schema.Types.ObjectId;
+
   totalAmount: number;
   items: OrderItem[];
-  paymentStatus: "pending" | "completed" | "cancelled" | "refund";
+  paymentStatus: number;
   paymentType: "cod" | "card";
-  orderStatus: OrderStatus[];
+  orderStatus: number;
 }
 
 const orderSchema: Schema = new mongoose.Schema({
@@ -47,10 +50,14 @@ const orderSchema: Schema = new mongoose.Schema({
     },
   ],
   paymentStatus: {
-    type: String,
-    enum: ["pending", "completed", "cancelled", "refund"],
+    type: Number,
+    enum: [
+      PaymentStatusId.PENDING,
+      PaymentStatusId.COMPLETED,
+      PaymentStatusId.REFUND,
+    ],
     required: true,
-    default: "pending",
+    default: PaymentStatusId.PENDING,
   },
   paymentType: {
     type: String,
@@ -58,22 +65,30 @@ const orderSchema: Schema = new mongoose.Schema({
     default: "cod",
     required: true,
   },
-  orderStatus: [
-    {
-      type: {
-        type: String,
-        enum: ["ordered", "packed", "shipped", "delivered"],
-        default: "ordered",
-      },
-      date: {
-        type: Date,
-      },
-      isCompleted: {
-        type: Boolean,
-        default: false,
-      },
+  orderStatus: {
+    type: Number,
+    enum: [
+      OrderStatusId.ORDERED,
+      OrderStatusId.PACKED,
+      OrderStatusId.SHIPPED,
+      OrderStatusId.DELIVERED,
+      OrderStatusId.CANCELLED,
+    ],
+    default: OrderStatusId.ORDERED,
+
+    date: {
+      type: Date,
     },
-  ],
+    isCompleted: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  address: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "address",
+    required: true,
+  },
 });
 
 const Order = mongoose.model<Order>("Order", orderSchema);

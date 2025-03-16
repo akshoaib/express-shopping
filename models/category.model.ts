@@ -10,6 +10,10 @@ const categorySchema: Schema = new mongoose.Schema(
       type: String,
       required: [true, "Please enter category"],
     },
+    image: {
+      type: String,
+      required: false,
+    },
   },
   {
     timestamps: true,
