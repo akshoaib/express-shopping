@@ -10,4 +10,8 @@ router.post("/user/login", (req: Request, res: Response) => {
   login(req, res);
 });
 
+router.get("/user/hey", (req: Request, res: Response) => {
+  res.send("Hey");
+});
+
 export default router;
