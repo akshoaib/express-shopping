@@ -32,7 +32,11 @@ app.use("/uploads", express.static("uploads"));
 
 const corsOptions = {
   credentials: true,
-  origin: ["http://localhost:5173", "https://shopping-two-green.vercel.app"], // Whitelist the domains you want to allow
+  origin: [
+    "http://localhost:5173",
+    "https://shopping-two-green.vercel.app",
+    "https://wardrobewave-by-shiza-rameesha.vercel.app",
+  ], // Whitelist the domains you want to allow
 };
 
 app.use(cors(corsOptions)); // Use the cors middleware with your options
