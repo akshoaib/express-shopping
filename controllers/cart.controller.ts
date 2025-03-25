@@ -36,9 +36,11 @@ const addToCart = async (
           ],
           totalPrice: productExists.price * quantity,
         });
-        return res
-          .status(201)
-          .json({ message: "Cart created successfully", cart: newCart });
+        return res.status(201).json({
+          success: true,
+          message: "Cart created successfully",
+          data: { cart: newCart },
+        });
       } else {
         const items = cart.cartItems?.find(
           (item) =>
@@ -86,9 +88,11 @@ const addToCart = async (
             );
           }
 
-          return res
-            .status(201)
-            .json({ message: "Cart updated successfully", updatedCart });
+          return res.status(201).json({
+            success: true,
+            message: "Cart updated successfully",
+            data: updatedCart,
+          });
         } else {
           console.log("elsees run");
 
@@ -109,18 +113,17 @@ const addToCart = async (
 
           console.log({ newCart });
 
-          return res
-            .status(201)
-            .json({ message: "Cart updated successfully", newCart });
+          return res.status(201).json({
+            success: true,
+            message: "Cart updated successfully",
+            data: newCart,
+          });
         }
       }
     } else {
-      return res
-        .status(400)
-        .json({
-          message: "Product not available or insufficient quantity",
-          success: true,
-        });
+      return res.status(400).json({
+        message: "Product not available or insufficient quantity",
+      });
     }
   } catch (error) {
     console.log(error);
