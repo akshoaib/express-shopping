@@ -117,7 +117,10 @@ const addToCart = async (
     } else {
       return res
         .status(400)
-        .json({ message: "Product not available or insufficient quantity" });
+        .json({
+          message: "Product not available or insufficient quantity",
+          success: true,
+        });
     }
   } catch (error) {
     console.log(error);
