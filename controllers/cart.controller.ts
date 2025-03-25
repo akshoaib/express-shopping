@@ -146,9 +146,10 @@ const getCartItems = async (
       { "cartItems._id": 0 }
     );
     console.log(cart);
-    return res
-      .status(200)
-      .json({ cart: cart[0]?.cartItems || [], total: cart[0]?.totalPrice });
+    return res.status(200).json({
+      success: true,
+      data: { cart: cart[0]?.cartItems || [], total: cart[0]?.totalPrice },
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Internal server error" });
