@@ -33,7 +33,7 @@ export interface TypedRequestBody<T> extends Request {
 }
 
 export interface CartItem {
-  productId: mongoose.Schema.Types.ObjectId;
+  productId?: mongoose.Schema.Types.ObjectId;
   quantity: number;
   product?: mongoose.Schema.Types.ObjectId;
   price?: number;

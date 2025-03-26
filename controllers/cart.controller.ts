@@ -16,12 +16,16 @@ const addToCart = async (
 ): Promise<Response> => {
   try {
     const { productId, quantity } = req.body;
+    if (!productId) {
+      return res
+        .status(400)
+        .json({ message: "product is required to add in the cart" });
+    }
     if (!req.user) {
       return res.status(400).json({ message: "User not authenticated" });
     }
     const user = req.user._id;
     const productExists: IProduct | null = await Product.findById(productId);
-    console.log({ productExists }, productExists?.quantity);
     if (productExists && productExists.quantity >= quantity) {
       const cart: ICart | null = await Cart.findOne({ user });
       if (!cart) {
@@ -46,15 +50,8 @@ const addToCart = async (
           (item) =>
             item.product && item.product.toString() === productId.toString()
         );
-        let total = cart.cartItems?.reduce((acc, item) => {
-          if (item?.product?.toString() !== productId?.toString()) {
-            acc = acc + (item.price ?? 0);
-          }
 
-          return acc;
-        }, 0);
-
-        console.log({ total });
+        let total = cart?.totalPrice;
 
         if (items) {
           let updatedCart;
@@ -79,9 +76,12 @@ const addToCart = async (
               },
               {
                 $set: {
-                  "cartItems.$.quantity": quantity,
-                  "cartItems.$.price": productExists.price * quantity,
-                  totalPrice: total + productExists.price * quantity,
+                  "cartItems.$.quantity": quantity + Number(items.quantity),
+                  "cartItems.$.price":
+                    (Number(items.price) || 0) +
+                    Number(productExists.price) * quantity,
+                  totalPrice:
+                    Number(total) + Number(productExists.price) * quantity,
                 },
               },
               { new: true }
@@ -94,8 +94,6 @@ const addToCart = async (
             data: updatedCart,
           });
         } else {
-          console.log("elsees run");
-
           const newCart = await Cart.findOneAndUpdate(
             { user: user },
             {
@@ -110,8 +108,6 @@ const addToCart = async (
             },
             { new: true }
           );
-
-          console.log({ newCart });
 
           return res.status(201).json({
             success: true,
@@ -140,12 +136,11 @@ const getCartItems = async (
       return res.status(400).json({ message: "User not authenticated" });
     }
     const userId = req.user._id;
-    console.log({ userId });
     const cart: ICart[] = await Cart.find(
       { user: userId },
       { "cartItems._id": 0 }
-    );
-    console.log(cart);
+    ).populate("cartItems.product", "name price description images");
+
     return res.status(200).json({
       success: true,
       data: { cart: cart[0]?.cartItems || [], total: cart[0]?.totalPrice },
@@ -194,7 +189,6 @@ const removeCartItems = async (
       },
       { new: true }
     );
-    console.log({ updatedCart });
 
     return res.status(200).json({ message: "Items removed", updatedCart });
   } catch (error) {
