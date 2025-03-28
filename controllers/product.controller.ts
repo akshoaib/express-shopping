@@ -119,6 +119,7 @@ const getProductById = async (req: Request, res: Response) => {
 const updateProduct = async (
   req: TypedRequestBody<{
     name?: string;
+    description: string;
     price?: number;
     category?: string;
     image?: string;

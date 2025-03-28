@@ -17,9 +17,10 @@ const addAddress = async (
         user,
         addressList: [{ city, town, completeAddress }],
       });
-      return res
-        .status(201)
-        .json({ message: "Address added successfully", newAddress });
+      return res.status(201).json({
+        data: { message: "Address added successfully", newAddress },
+        success: true,
+      });
     } else {
       const updatedAddress = await Address.findOneAndUpdate(
         { user },
@@ -28,9 +29,10 @@ const addAddress = async (
         },
         { new: true }
       );
-      return res
-        .status(201)
-        .json({ message: "Address updated successfully", updatedAddress });
+      return res.status(201).json({
+        data: { message: "Address added successfully", updatedAddress },
+        success: true,
+      });
     }
   } catch (error) {
     console.log(error);
@@ -44,9 +46,9 @@ const getAddress = async (req: TypedRequestBody<IAddress>, res: Response) => {
     const user = req.user?._id;
     const address = await Address.findOne({ user });
     if (!address) {
-      return res.status(404).json({ message: "Address not found" });
+      return res.status(200).json({ success: true, data: { address: [] } });
     }
-    return res.status(200).json({ address });
+    return res.status(200).json({ success: true, data: { address } });
   } catch (error) {
     console.log(error);
   }
@@ -65,7 +67,9 @@ const deleteAddress = async (
 
     const address = await Address.findOne({ user });
     if (!address) {
-      return res.status(404).json({ message: "Address not found" });
+      return res
+        .status(404)
+        .json({ success: false, data: { message: "Address not found" } });
     }
     const deletedAddress = await Address.findOneAndUpdate(
       { user },
@@ -75,7 +79,10 @@ const deleteAddress = async (
         },
       }
     );
-    return res.status(200).json({ message: "Address deleted successfully" });
+    return res.status(200).json({
+      success: true,
+      data: { message: "Address deleted successfully" },
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Internal server error" });

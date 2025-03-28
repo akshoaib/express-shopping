@@ -5,6 +5,7 @@ interface IProduct extends Document {
   quantity: number;
   price: number;
   image?: string;
+  description: string;
   category: mongoose.Schema.Types.ObjectId;
   rating: number;
   reviews: {
@@ -21,6 +22,10 @@ const ProductSchema: Schema = new Schema(
     name: {
       type: String,
       required: [true, "Please enter product name"],
+    },
+    description: {
+      type: String,
+      required: [true, "Please enter product description"],
     },
     quantity: {
       type: Number,
