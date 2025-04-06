@@ -14,7 +14,7 @@ interface AuthRequest extends Request {
 
 const createSecretToken = (user: User): string => {
   return jwt.sign({ ...user }, process.env.SECRET_KEY as string, {
-    expiresIn: "5h",
+    expiresIn: "30d",
   });
 };
 

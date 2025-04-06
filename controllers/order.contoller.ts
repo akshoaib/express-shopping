@@ -82,7 +82,7 @@ const addOrder = async (
       });
     });
 
-    res.status(201).json({ message: "order placed!" });
+    res.status(201).json({ message: "order placed!", success: true });
   } catch (error) {
     res.status(500).json(error);
 

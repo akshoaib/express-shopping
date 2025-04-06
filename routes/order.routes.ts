@@ -11,7 +11,7 @@ import {
 } from "../controllers/order.contoller";
 import { adminRoleMiddleware, authMiddleware } from "../utils";
 
-router.get(
+router.post(
   "/order/place-order",
   authMiddleware,
   (req: Request, res: Response, next: NextFunction) => addOrder(req, res)

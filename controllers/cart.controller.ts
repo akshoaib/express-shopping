@@ -190,7 +190,9 @@ const removeCartItems = async (
       { new: true }
     );
 
-    return res.status(200).json({ message: "Items removed", updatedCart });
+    return res
+      .status(200)
+      .json({ message: "Items removed", success: true, data: updatedCart });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Internal server error" });
