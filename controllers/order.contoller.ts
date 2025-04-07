@@ -97,7 +97,7 @@ const getUserOrders = async (
   try {
     const user = req.user;
     const orders = await Order.find({ user });
-    res.status(200).json({ orders });
+    res.status(200).json({ data: { orders }, success: true });
   } catch (error) {}
 };
 
