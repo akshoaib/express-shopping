@@ -28,14 +28,16 @@ const userSignup = async (req: Request, res: Response): Promise<Response> => {
   })) as IUser;
   const token: string = createSecretToken({ _id: user._id, role: user.role });
   return res.status(201).json({
-    message: "User signed in successfully",
+    message: "Signup successful!",
     success: true,
-    user: {
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
+    data: {
+      user: {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      token,
     },
-    token,
   });
 };
 
