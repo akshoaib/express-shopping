@@ -30,8 +30,6 @@ interface IOrderDocument extends Document {
   _id: string;
 }
 const getUserCartItems = async (_id: string): Promise<any> => {
-  console.log({ _id });
-
   const cart = await Cart.findOne({ user: _id });
 
   let items = cart?.cartItems?.map((itm) => {
@@ -52,7 +50,7 @@ const addOrder = async (
     const user = req.user?._id || "";
     let address = req.body.address;
     let cart = await getUserCartItems(user);
-    console.log("user's cart:: ", cart, address);
+
     if (cart?.items.length === 0) {
       return res.status(400).json({ message: "cart is empty!" });
     }
@@ -106,14 +104,18 @@ const getAllOrders = async (
   res: Response
 ): Promise<void> => {
   try {
-    const orders = await Order.find({}).populate("user", "-password").lean();
-    console.log({ orders });
+    const { page = 1, limit = 10 } = req.query;
+
+    const orders = await Order.find({})
+      .skip((Number(page) - 1) * Number(limit))
+      .limit(Number(limit))
+      .populate("user", "-password")
+      .lean();
+
     const addressess = await Address.findOne({ user: req.user?._id });
     let ordersWithAddress;
     if (addressess?.addressList && addressess.addressList.length > 0) {
       ordersWithAddress = orders.map((order) => {
-        console.log("rrrrrrrr", order);
-
         const address = addressess?.addressList.find(
           (a) => a?._id.toString() === order?.address.toString()
         );
@@ -123,7 +125,7 @@ const getAllOrders = async (
         };
       });
     }
-    console.log({ ordersWithAddress });
+
     const totalOrders = await Order.countDocuments();
 
     res.status(200).json({
@@ -166,7 +168,6 @@ const updateOrderStatus = async (
         .json({ message: "payment can not be refunded without completion" });
       return;
     }
-    console.log("body::", req.body);
 
     const updatedOrder = await Order.findByIdAndUpdate(
       { _id },
@@ -186,9 +187,6 @@ const getOrderStatusDropdown = async (
   let statusNameKeys = Object.values(OrderTypes);
   let statusIdKeys = Object.values(OrderStatusId);
 
-  console.log({ statusIdKeys });
-  console.log({ statusNameKeys });
-
   let mapped = statusIdKeys.map((id, index) => {
     return {
       _id: id,
@@ -207,9 +205,6 @@ const getPaymentStatusDropdown = async (
 ): Promise<void> => {
   let statusNameKeys = Object.values(PaymentTypes);
   let statusIdKeys = Object.values(PaymentStatusId);
-
-  console.log({ statusIdKeys });
-  console.log({ statusNameKeys });
 
   let mapped = statusIdKeys.map((id, index) => {
     return {
