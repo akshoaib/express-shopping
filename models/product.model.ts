@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
 
-interface IProduct extends Document {
+export interface IProduct extends Document {
   name: string;
   quantity: number;
   price: number;
@@ -15,6 +15,8 @@ interface IProduct extends Document {
     comment: string;
     createdAt: Date;
   }[];
+  tags?: string[];
+  productId?: mongoose.Schema.Types.ObjectId;
 }
 
 const ProductSchema: Schema = new Schema(
@@ -50,6 +52,9 @@ const ProductSchema: Schema = new Schema(
     rating: {
       type: Number,
       default: 0,
+    },
+    tags: {
+      type: [String],
     },
     reviews: [
       {

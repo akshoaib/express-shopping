@@ -6,12 +6,14 @@ import mongoose, { ObjectId } from "mongoose";
 import { OrderStatusId, PaymentStatusId } from "../constants";
 import Cart from "../models/cart.model";
 import { uploadToCloudinary } from "../utils";
+import ProductView from "../models/product-view.model";
+import axios from "axios";
 const createProduct = async (
   req: TypedRequestBody<IProduct>,
   res: Response
 ) => {
   try {
-    const { name, description, price, category, quantity } = req.body;
+    const { name, description, price, category, quantity, tags } = req.body;
     console.log("hello33333333333333", req.file);
 
     let imageURL = "";
@@ -40,6 +42,7 @@ const createProduct = async (
       price,
       category,
       quantity,
+      tags,
       images: images ? images : [], // Save the file path
     });
 
@@ -78,6 +81,39 @@ const getProducts = async (
       filter.price = { ...filter.price, $lte: maxPrice };
     }
     console.log({ filter });
+
+    const lastView = await ProductView.findOne({
+      userId: req.user?._id,
+    }).populate("productId");
+
+    console.log({ lastView });
+    console.log("lastView:::::::::::::::", lastView);
+
+    if (!lastView) return res.status(200).json([]);
+
+    const lastProduct = await Product.findById({
+      _id: lastView?.productId?._id?.toString(),
+    });
+    if (!lastProduct)
+      return res.status(404).json({ error: "Product not found" });
+
+    // Send only necessary fields
+    const payload = {
+      id: lastProduct?._id?.toString(),
+      name: lastProduct.name,
+      tags: lastProduct?.tags?.toString()?.split(" "),
+    };
+    console.log("nnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", payload);
+
+    let response = await axios.post("http://127.0.0.1:8000/recommend", {
+      product: {
+        id: lastProduct?._id,
+        name: lastProduct.name,
+        tags: lastProduct?.tags?.toString(),
+      },
+    });
+    console.log({ response }, response?.data);
+
     const totalProducts = await Product.countDocuments(filter);
     let products;
     if (page) {
@@ -96,19 +132,24 @@ const getProducts = async (
       },
       success: true,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
+    console.error("Error response data12:", error?.response?.data);
+
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
-const getProductById = async (req: Request, res: Response) => {
+const getProductById = async (req: TypedRequestBody<any>, res: Response) => {
   try {
     const { id } = req.params;
     const product = await Product.findById(id);
     if (!product) {
       return res.status(404).json({ message: "product not found" });
     }
+
+    await ProductView.create({ userId: req.user?._id, productId: id });
+
     res.status(200).json(product);
   } catch (error) {
     console.log(error);

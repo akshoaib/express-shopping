@@ -20,13 +20,25 @@ router.post(
   (req: Request, res: Response, next: NextFunction) => createProduct(req, res)
 );
 
-router.post("/product/get-all", (req: Request, res: Response) =>
-  getProducts(req, res)
+router.post(
+  "/product/get-all",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    await getProducts(req, res);
+  }
 );
 
-router.get("/product/get/:id", (req: Request, res: Response) => {
-  getProductById(req, res);
-});
+// router.get("/product/get/:id", (req: Request, res: Response) => {
+//   getProductById(req, res);
+// });
+
+router.get(
+  "/product/get/:id",
+  authMiddleware,
+  (req: Request, res: Response) => {
+    getProductById(req, res);
+  }
+);
 
 router.put(
   "/product/update/:id",
