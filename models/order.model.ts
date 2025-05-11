@@ -24,72 +24,75 @@ interface Order extends Document {
   orderStatus: number;
 }
 
-const orderSchema: Schema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-  totalAmount: {
-    type: Number,
-    required: true,
-  },
-  items: [
-    {
-      productId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-      },
-      payablePrice: {
-        type: Number,
-        required: true,
-      },
-      purchasedQty: {
-        type: Number,
-        required: true,
-      },
+const orderSchema: Schema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
-  ],
-  paymentStatus: {
-    type: Number,
-    enum: [
-      PaymentStatusId.PENDING,
-      PaymentStatusId.COMPLETED,
-      PaymentStatusId.REFUND,
+    totalAmount: {
+      type: Number,
+      required: true,
+    },
+    items: [
+      {
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+        },
+        payablePrice: {
+          type: Number,
+          required: true,
+        },
+        purchasedQty: {
+          type: Number,
+          required: true,
+        },
+      },
     ],
-    required: true,
-    default: PaymentStatusId.PENDING,
-  },
-  paymentType: {
-    type: String,
-    enum: ["cod", "card"],
-    default: "cod",
-    required: true,
-  },
-  orderStatus: {
-    type: Number,
-    enum: [
-      OrderStatusId.ORDERED,
-      OrderStatusId.PACKED,
-      OrderStatusId.SHIPPED,
-      OrderStatusId.DELIVERED,
-      OrderStatusId.CANCELLED,
-    ],
-    default: OrderStatusId.ORDERED,
+    paymentStatus: {
+      type: Number,
+      enum: [
+        PaymentStatusId.PENDING,
+        PaymentStatusId.COMPLETED,
+        PaymentStatusId.REFUND,
+      ],
+      required: true,
+      default: PaymentStatusId.PENDING,
+    },
+    paymentType: {
+      type: String,
+      enum: ["cod", "card"],
+      default: "cod",
+      required: true,
+    },
+    orderStatus: {
+      type: Number,
+      enum: [
+        OrderStatusId.ORDERED,
+        OrderStatusId.PACKED,
+        OrderStatusId.SHIPPED,
+        OrderStatusId.DELIVERED,
+        OrderStatusId.CANCELLED,
+      ],
+      default: OrderStatusId.ORDERED,
 
-    date: {
-      type: Date,
+      date: {
+        type: Date,
+      },
+      isCompleted: {
+        type: Boolean,
+        default: false,
+      },
     },
-    isCompleted: {
-      type: Boolean,
-      default: false,
+    address: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "address",
+      required: true,
     },
   },
-  address: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "address",
-    required: true,
-  },
-});
+  { timestamps: true }
+);
 
 const Order = mongoose.model<Order>("Order", orderSchema);
 export default Order;
