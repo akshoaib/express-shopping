@@ -15,8 +15,6 @@ export interface IProduct extends Document {
     comment: string;
     createdAt: Date;
   }[];
-  tags?: string[];
-  productId?: mongoose.Schema.Types.ObjectId;
 }
 
 const ProductSchema: Schema = new Schema(
@@ -53,9 +51,7 @@ const ProductSchema: Schema = new Schema(
       type: Number,
       default: 0,
     },
-    tags: {
-      type: [String],
-    },
+
     reviews: [
       {
         user: {

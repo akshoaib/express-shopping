@@ -6,18 +6,14 @@ import mongoose, { ObjectId } from "mongoose";
 import { OrderStatusId, PaymentStatusId } from "../constants";
 import Cart from "../models/cart.model";
 import { uploadToCloudinary } from "../utils";
-import ProductView from "../models/product-view.model";
-import axios from "axios";
 const createProduct = async (
   req: TypedRequestBody<IProduct>,
   res: Response
 ) => {
   try {
-    const { name, description, price, category, quantity, tags } = req.body;
-    console.log("hello33333333333333", req.file);
+    const { name, description, price, category, quantity } = req.body;
 
     let imageURL = "";
-    console.log("request.files", req.files);
 
     let images =
       Array.isArray(req.files) &&
@@ -34,15 +30,12 @@ const createProduct = async (
     //   imageURL = (await uploadToCloudinary(req.file.buffer)) || "";
     // }
 
-    console.log({ images });
-
     const newProduct = new Product({
       name,
       description,
       price,
       category,
       quantity,
-      tags,
       images: images ? images : [], // Save the file path
     });
 
@@ -80,39 +73,6 @@ const getProducts = async (
     if (maxPrice) {
       filter.price = { ...filter.price, $lte: maxPrice };
     }
-    console.log({ filter });
-
-    const lastView = await ProductView.findOne({
-      userId: req.user?._id,
-    }).populate("productId");
-
-    console.log({ lastView });
-    console.log("lastView:::::::::::::::", lastView);
-
-    if (!lastView) return res.status(200).json([]);
-
-    const lastProduct = await Product.findById({
-      _id: lastView?.productId?._id?.toString(),
-    });
-    if (!lastProduct)
-      return res.status(404).json({ error: "Product not found" });
-
-    // Send only necessary fields
-    const payload = {
-      id: lastProduct?._id?.toString(),
-      name: lastProduct.name,
-      tags: lastProduct?.tags?.toString()?.split(" "),
-    };
-    console.log("nnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", payload);
-
-    let response = await axios.post("http://127.0.0.1:8000/recommend", {
-      product: {
-        id: lastProduct?._id,
-        name: lastProduct.name,
-        tags: lastProduct?.tags?.toString(),
-      },
-    });
-    console.log({ response }, response?.data);
 
     const totalProducts = await Product.countDocuments(filter);
     let products;
@@ -134,21 +94,18 @@ const getProducts = async (
     });
   } catch (error: any) {
     console.log(error);
-    console.error("Error response data12:", error?.response?.data);
 
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
-const getProductById = async (req: TypedRequestBody<any>, res: Response) => {
+const getProductById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const product = await Product.findById(id);
     if (!product) {
       return res.status(404).json({ message: "product not found" });
     }
-
-    await ProductView.create({ userId: req.user?._id, productId: id });
 
     res.status(200).json(product);
   } catch (error) {
@@ -191,16 +148,13 @@ const updateProduct = async (
       ...req.body,
       // image: imageURL ? imageURL : req.body?.image,
     };
-    console.log({ body });
+
     const updateData = { ...body };
     const updateOptions: any = { ...updateData };
-    console.log("hey images:: ", images);
 
     if (images && images.length > 0) {
       updateOptions.$push = { images: images };
     }
-
-    console.log({ updateOptions });
 
     const product = await Product.findByIdAndUpdate(id, updateOptions);
 
@@ -208,7 +162,6 @@ const updateProduct = async (
       return res.status(404).json({ message: "product not found" });
     }
     const updatedProduct = await Product.findById(id);
-    console.log("get products::", updatedProduct);
 
     res.status(200).json({ data: updatedProduct, success: true });
   } catch (error) {
@@ -224,7 +177,6 @@ const deleteProduct = async (req: Request, res: Response) => {
       cartItems: { $elemMatch: { productId: id } },
     });
 
-    console.log("ccccc", carts);
     const orders = await Order.find({
       items: { $elemMatch: { productId: id } },
       paymentStatus: { $ne: PaymentStatusId.COMPLETED },
@@ -234,9 +186,7 @@ const deleteProduct = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Product is in cart or order" });
     }
 
-    console.log("orders", orders);
     const product = await Product.findByIdAndDelete(id);
-    console.log("get products::", product);
 
     if (!product) {
       return res.status(404).json({ message: "product not found" });
@@ -264,13 +214,10 @@ const rateProduct = async (
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-    console.log({ id });
 
     const order = await Order.findOne({
       items: { $elemMatch: { productId: id } },
     });
-
-    console.log({ order });
 
     if (!order) {
       return res
@@ -279,8 +226,6 @@ const rateProduct = async (
     }
 
     const alreadyRated = product.reviews.find((r) => {
-      console.log(r.user, req.user?._id, req.user);
-
       return r.user?.toString() === req.user?._id?.toString();
     });
 
