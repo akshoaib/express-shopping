@@ -63,6 +63,7 @@ const login = async (req: Request, res: Response): Promise<Response> => {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        userId: user._id,
       },
       token,
     },

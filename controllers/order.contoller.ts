@@ -94,7 +94,7 @@ const getUserOrders = async (
 ): Promise<void> => {
   try {
     const user = req.user;
-    const orders = await Order.find({ user });
+    const orders = await Order.find({ user }).populate("items.productId");
     res.status(200).json({ data: { orders }, success: true });
   } catch (error) {}
 };

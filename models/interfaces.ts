@@ -14,6 +14,7 @@ export interface IProduct {
   image?: string;
   description: string;
   category: mongoose.Schema.Types.ObjectId;
+  tags?: string;
 }
 
 export interface IUser {

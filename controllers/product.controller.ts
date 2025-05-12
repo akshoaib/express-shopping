@@ -1,9 +1,8 @@
-import express, { Request, Response } from "express";
+import { Request, Response } from "express";
 import Product from "../models/product.model";
 import { IProduct, TypedRequestBody } from "../models/interfaces";
 import Order from "../models/order.model";
-import mongoose, { ObjectId } from "mongoose";
-import { OrderStatusId, PaymentStatusId } from "../constants";
+import { PaymentStatusId } from "../constants";
 import Cart from "../models/cart.model";
 import { uploadToCloudinary } from "../utils";
 const createProduct = async (
@@ -11,7 +10,7 @@ const createProduct = async (
   res: Response
 ) => {
   try {
-    const { name, description, price, category, quantity } = req.body;
+    const { name, description, price, category, quantity, tags } = req.body;
 
     let imageURL = "";
 
@@ -36,6 +35,7 @@ const createProduct = async (
       price,
       category,
       quantity,
+      tags,
       images: images ? images : [], // Save the file path
     });
 
@@ -102,12 +102,15 @@ const getProducts = async (
 const getProductById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const product = await Product.findById(id);
+    const product = await Product.findById(id).populate(
+      "reviews.user",
+      "-password"
+    );
     if (!product) {
       return res.status(404).json({ message: "product not found" });
     }
 
-    res.status(200).json(product);
+    res.status(200).json({ data: product, success: true });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
@@ -230,7 +233,16 @@ const rateProduct = async (
     });
 
     if (alreadyRated) {
-      return res.status(400).json({ message: "Product already rated" });
+      const updatedProduct = await Product.findByIdAndUpdate(
+        { _id: id },
+        {
+          $pull: {
+            reviews: {
+              user: req.user?._id,
+            },
+          },
+        }
+      );
     }
 
     const updatedProduct = await Product.findByIdAndUpdate(
@@ -246,7 +258,9 @@ const rateProduct = async (
         rating: (product.rating + rating) / (product.reviews.length + 1),
       }
     );
-    res.status(200).json({ message: "Product rated successfully" });
+    res
+      .status(200)
+      .json({ data: { message: "Product rated successfully" }, success: true });
   } catch (error) {
     console.log(error);
 

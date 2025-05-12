@@ -15,6 +15,7 @@ export interface IProduct extends Document {
     comment: string;
     createdAt: Date;
   }[];
+  tags?: string;
 }
 
 const ProductSchema: Schema = new Schema(
@@ -51,12 +52,16 @@ const ProductSchema: Schema = new Schema(
       type: Number,
       default: 0,
     },
-
+    tags: {
+      type: String,
+      required: true,
+      default: "",
+    },
     reviews: [
       {
         user: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "user",
+          ref: "User",
           required: true,
         },
         name: {
