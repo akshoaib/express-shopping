@@ -70,4 +70,45 @@ const login = async (req: Request, res: Response): Promise<Response> => {
   });
 };
 
-export { userSignup, login };
+const getUserReport = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { startDate, endDate } = req.query;
+
+  if (!startDate || !endDate) {
+    return res
+      .status(400)
+      .json({ message: "Start and end dates are required" });
+  }
+
+  const start = new Date(startDate as string);
+  const end = new Date(endDate as string);
+  end.setUTCHours(23, 59, 59, 999);
+
+  try {
+    const result = await User.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: start, $lte: end },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m", date: "$createdAt" },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    return res.json({ data: result, success: true }); // e.g., [ { _id: "2025-05-10", count: 3 }, ... ]
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export { userSignup, login, getUserReport };

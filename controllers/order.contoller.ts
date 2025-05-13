@@ -1,9 +1,14 @@
 import mongoose from "mongoose";
-import { OrderStatusId, OrderTypes, PaymentTypes } from "../constants";
+import {
+  OrderStatusForIds,
+  OrderStatusId,
+  OrderTypes,
+  PaymentTypes,
+} from "../constants";
 import Cart from "../models/cart.model";
 import { TypedRequestBody } from "../models/interfaces";
 import Order from "../models/order.model";
-import { Response } from "express";
+import { Request, Response } from "express";
 import Address from "../models/address.model";
 import Product from "../models/product.model";
 import { PaymentStatusId } from "../constants";
@@ -217,6 +222,57 @@ const getPaymentStatusDropdown = async (
     .status(200)
     .json({ data: { paymentStatusDropdown: mapped }, success: true });
 };
+const generateReport = async (req: Request, res: Response) => {
+  const { startDate, endDate } = req.query;
+
+  if (!startDate || !endDate) {
+    return res
+      .status(400)
+      .json({ message: "Start and end dates are required" });
+  }
+
+  const start = new Date(startDate as string);
+  const end = new Date(endDate as string);
+  end.setUTCHours(23, 59, 59, 999); // include full day
+  try {
+    const result = await Order.aggregate([
+      {
+        $match: {
+          updatedAt: { $gte: start, $lte: end },
+        },
+      },
+      {
+        $group: {
+          _id: "$orderStatus",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Structure result for frontend graphing
+    const defaultStatuses = [1, 2, 3, 4, 5];
+    const counts = Object.fromEntries(
+      defaultStatuses.map((status) => [status, 0])
+    );
+
+    result.forEach((r) => {
+      counts[r._id] = r.count;
+    });
+
+    let data = Object.entries(counts).map(([key, value]) => {
+      const Key = String(key) as keyof typeof OrderStatusForIds;
+      const label = OrderStatusForIds[Key];
+      return {
+        status: label,
+        count: counts[Key],
+      };
+    });
+
+    return res.json({ data: data, success: true }); // e.g., { 1: 3, 2: 5, 3: 2, 4: 0 }
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 export {
   addOrder,
@@ -225,4 +281,5 @@ export {
   getAllOrders,
   getOrderStatusDropdown,
   getPaymentStatusDropdown,
+  generateReport,
 };

@@ -8,13 +8,28 @@ import {
   getUserOrders,
   getOrderStatusDropdown,
   getPaymentStatusDropdown,
+  generateReport,
 } from "../controllers/order.contoller";
+
 import { adminRoleMiddleware, authMiddleware } from "../utils";
 
 router.post(
   "/order/place-order",
   authMiddleware,
   (req: Request, res: Response, next: NextFunction) => addOrder(req, res)
+);
+
+router.get(
+  "/order/order-status-report",
+  authMiddleware,
+  adminRoleMiddleware,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await generateReport(req, res);
+    } catch (error) {
+      next(error);
+    }
+  }
 );
 
 router.put(
