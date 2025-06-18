@@ -5,12 +5,14 @@ import Order from "../models/order.model";
 import { PaymentStatusId } from "../constants";
 import Cart from "../models/cart.model";
 import { uploadToCloudinary } from "../utils";
+
 const createProduct = async (
   req: TypedRequestBody<IProduct>,
   res: Response
 ) => {
   try {
     const { name, description, price, category, quantity, tags } = req.body;
+    const io = req.app.get("io");
 
     let imageURL = "";
 
@@ -45,6 +47,7 @@ const createProduct = async (
       product,
       success: true,
     });
+    io.emit("new-product", product);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });

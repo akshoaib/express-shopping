@@ -8,9 +8,28 @@ import cartRoutes from "./routes/cart.route";
 import orderRoutes from "./routes/order.routes";
 import addressRoutes from "./routes/address.routes";
 import cors from "cors";
+import http from "http";
+import { Server as SocketIOServer } from "socket.io";
+
 dotenv.config();
 
 const app: Application = express();
+const server = http.createServer(app);
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: "*", // adjust in production
+    methods: ["GET", "POST"],
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log("User connected: ", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected: ", socket.id);
+  });
+});
+app.set("io", io);
 
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
@@ -49,9 +68,10 @@ mongoose
   .then(() => console.log("database connected!"))
   .catch((err: Error) => console.error("database connection error:", err));
 
-app.listen(5000, () => {
-  console.log("app running at port 5000");
-});
+// app.listen(5000, () => {
+//   console.log("app running at port 5000");
+// });
+server.listen(5000);
 
 app.use(productRoutes);
 app.use(userRoutes);
