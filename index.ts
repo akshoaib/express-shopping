@@ -17,7 +17,10 @@ const app: Application = express();
 const server = http.createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: "*", // adjust in production
+    origin: [
+      "http://localhost:5173",
+      "https://wardrobewave-by-shiza-rameesha.vercel.app",
+    ],
     methods: ["GET", "POST"],
   },
 });
