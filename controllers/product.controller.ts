@@ -54,6 +54,28 @@ const createProduct = async (
   }
 };
 
+const getProductsRecommendation = async (
+  req: TypedRequestBody<{}>,
+  res: Response
+) => {
+  try {
+    let products;
+
+    products = await Product.find();
+
+    res.status(200).json({
+      // data: {
+      products,
+      // },
+      success: true,
+    });
+  } catch (error: any) {
+    console.log(error);
+
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 const getProducts = async (
   req: TypedRequestBody<{
     category?: string;
@@ -65,7 +87,15 @@ const getProducts = async (
   res: Response
 ) => {
   try {
-    const { category, minPrice = 0, maxPrice, page = 0, limit = 10 } = req.body;
+    const {
+      category,
+      minPrice = 0,
+      maxPrice,
+      page = 0,
+      limit = 1000,
+    } = req.body;
+    const { id, name, tags } = req.query;
+
     const filter: any = {};
     if (category) {
       filter.category = category;
@@ -76,25 +106,49 @@ const getProducts = async (
     if (maxPrice) {
       filter.price = { ...filter.price, $lte: maxPrice };
     }
-
-    const totalProducts = await Product.countDocuments(filter);
     let products;
-    if (page) {
-      products = await Product.find(filter)
-        .skip((page - 1) * limit)
-        .limit(Number(limit))
-        .populate("category");
-    } else {
-      products = await Product.find(filter).populate("category");
-    }
 
-    res.status(200).json({
-      data: {
-        products,
-        total: totalProducts,
-      },
-      success: true,
-    });
+    if (id && Object?.keys(filter)?.length === 0) {
+      products = await Product.find(filter);
+
+      if (tags) {
+        if (tags) {
+          products = products.sort((a: any, b: any) => {
+            const aMatches = a.tags?.includes(tags) ? 1 : 0;
+            const bMatches = b.tags?.includes(tags) ? 1 : 0;
+            return bMatches - aMatches;
+          });
+        }
+      }
+
+      const totalProducts = await Product.countDocuments(filter);
+
+      return res.status(200).json({
+        data: {
+          products,
+          total: totalProducts,
+        },
+        success: true,
+      });
+    } else {
+      const totalProducts = await Product.countDocuments(filter);
+      if (page) {
+        products = await Product.find(filter)
+          .skip((page - 1) * limit)
+          .limit(Number(limit))
+          .populate("category");
+      } else {
+        products = await Product.find(filter).populate("category");
+      }
+
+      res.status(200).json({
+        data: {
+          products,
+          total: totalProducts,
+        },
+        success: true,
+      });
+    }
   } catch (error: any) {
     console.log(error);
 
@@ -292,4 +346,5 @@ export {
   deleteProduct,
   rateProduct,
   deleteAllProducts,
+  getProductsRecommendation,
 };

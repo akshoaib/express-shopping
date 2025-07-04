@@ -20,6 +20,7 @@ const io = new SocketIOServer(server, {
     origin: [
       "http://localhost:5173",
       "https://wardrobewave-by-shiza-rameesha.vercel.app",
+      "http://127.0.0.1:8000",
     ],
     methods: ["GET", "POST"],
   },

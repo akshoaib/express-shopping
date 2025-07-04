@@ -9,6 +9,7 @@ import {
   createProduct,
   rateProduct,
   deleteAllProducts,
+  getProductsRecommendation,
 } from "../controllers/product.controller";
 import { adminRoleMiddleware, authMiddleware, uploadImage } from "../utils";
 
@@ -23,6 +24,13 @@ router.post(
 router.post("/product/get-all", async (req: Request, res: Response) => {
   await getProducts(req, res);
 });
+
+router.get(
+  "/product/get-products-recommendation",
+  async (req: Request, res: Response) => {
+    await getProductsRecommendation(req, res);
+  }
+);
 
 // router.get("/product/get/:id", (req: Request, res: Response) => {
 //   getProductById(req, res);
