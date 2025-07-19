@@ -21,6 +21,7 @@ const io = new SocketIOServer(server, {
       "http://localhost:5173",
       "https://wardrobewave-by-shiza-rameesha.vercel.app",
       "http://127.0.0.1:8000",
+      "http://localhost:3000",
     ],
     methods: ["GET", "POST"],
   },
@@ -59,6 +60,7 @@ const corsOptions = {
     "http://localhost:5173",
     "https://shopping-two-green.vercel.app",
     "https://wardrobewave-by-shiza-rameesha.vercel.app",
+    "http://localhost:3000",
   ], // Whitelist the domains you want to allow
 };
 
