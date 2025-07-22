@@ -189,7 +189,10 @@ const deleteProduct = async (req: Request, res: Response) => {
     });
 
     if (carts?.length > 0 || orders?.length > 0) {
-      return res.status(400).json({ message: "Product is in cart or order" });
+      return res.status(400).json({
+        message:
+          "Product cannot be deleted because it is in someone's cart or someone has ordered it",
+      });
     }
 
     const product = await Product.findByIdAndDelete(id);
@@ -197,7 +200,12 @@ const deleteProduct = async (req: Request, res: Response) => {
     if (!product) {
       return res.status(404).json({ message: "product not found" });
     }
-    res.status(200).json({ message: "product deleted successfully" });
+    res.status(200).json({
+      data: {
+        message: "product deleted successfully",
+      },
+      success: true,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });

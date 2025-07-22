@@ -6,7 +6,6 @@ const createCategory = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name } = req.body;
     const categoryExists = await Category.findOne({ name });
-    console.log({ categoryExists });
 
     if (categoryExists) {
       res.json({ message: "category already exists" });

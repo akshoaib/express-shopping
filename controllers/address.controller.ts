@@ -10,7 +10,6 @@ const addAddress = async (
     const { city, town, completeAddress } = req.body;
     const user = req.user?._id;
     const addressExists = await Address.findOne({ user: user });
-    console.log({ addressExists });
 
     if (!addressExists) {
       const newAddress = await Address.create({
@@ -63,7 +62,6 @@ const deleteAddress = async (
     console.log("params::", req.params);
 
     const _id = req.params.id;
-    console.log({ _id });
 
     const address = await Address.findOne({ user });
     if (!address) {
