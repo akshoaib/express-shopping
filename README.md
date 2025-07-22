@@ -4,7 +4,7 @@ This is the **Express.js backend** for my full-stack MERN (MongoDB, Express, Rea
 
 ## 🌐 Frontend Repository
 
-👉 [React Frontend Repository](#) https://github.com/akshoaib/shopping
+👉 [React Frontend Repository](https://github.com/akshoaib/shopping)
 
 ---
 
