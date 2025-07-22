@@ -156,21 +156,28 @@ const updateOrderStatus = async (
 
     if (
       paymentStatus === PaymentStatusId.COMPLETED &&
-      order?.orderStatus !== OrderStatusId.DELIVERED
+      orderStatus !== OrderStatusId.DELIVERED
     ) {
-      res
-        .status(400)
-        .json({ message: "payment can not be completed without delivering" });
+      res.status(400).json({
+        message: "payment can not be completed without delivering order",
+      });
       return;
     }
 
+    // if (
+    //   paymentStatus === PaymentStatusId.REFUND &&
+    //   (orderStatus !== OrderStatusId.CANCELLED ||
+    //     order?.paymentStatus !== PaymentStatusId.COMPLETED ||
+    //     order?.orderStatus !== OrderStatusId.CANCELLED)
+    // ) {
     if (
       paymentStatus === PaymentStatusId.REFUND &&
-      order?.paymentStatus !== PaymentStatusId.COMPLETED
+      orderStatus !== OrderStatusId.CANCELLED
     ) {
-      res
-        .status(400)
-        .json({ message: "payment can not be refunded without completion" });
+      res.status(400).json({
+        message:
+          "payment can only be refunded if order is cancelled and payment is completed",
+      });
       return;
     }
 

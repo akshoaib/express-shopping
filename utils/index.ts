@@ -24,7 +24,6 @@ const authMiddleware = (
   next: NextFunction
 ): void => {
   const token = req.header("Authorization");
-  console.log({ token });
 
   if (!token) {
     res.status(401).json({ message: "No token, Authorization failed" });
