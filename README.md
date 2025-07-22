@@ -46,5 +46,5 @@ This is the **Express.js backend** for my full-stack MERN (MongoDB, Express, Rea
 ├── utils/              # Utility functions (e.g., token generation)
 ├── uploads/            # Uploaded files (if using local upload)
 ├── .env
-├── server.js / app.js  # Entry point
+├── index.js  # Entry point
 └── package.json
