@@ -78,7 +78,9 @@ const getProductsRecommendation = async (
 
 const getProducts = async (
   req: TypedRequestBody<{
-    category?: string;
+    category?: number[];
+    rating?: number[];
+    availability?: boolean[];
     minPrice?: number;
     maxPrice?: number;
     page?: number;
@@ -93,12 +95,14 @@ const getProducts = async (
       maxPrice,
       page = 0,
       limit = 1000,
+      rating,
+      availability,
     } = req.body;
     const { id, name, tags } = req.query;
 
     const filter: any = {};
-    if (category) {
-      filter.category = category;
+    if (category && category.length > 0) {
+      filter.category = { $in: [category] };
     }
     if (minPrice) {
       filter.price = { $gte: minPrice };
@@ -106,6 +110,14 @@ const getProducts = async (
     if (maxPrice) {
       filter.price = { ...filter.price, $lte: maxPrice };
     }
+
+    if (rating && rating.length > 0) {
+      filter.rating = { $in: rating };
+    }
+    if (availability && availability.length > 0) {
+      filter.availability = { $in: availability };
+    }
+
     let products;
 
     if (id && Object?.keys(filter)?.length === 0) {
