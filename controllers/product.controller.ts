@@ -5,6 +5,7 @@ import Order from "../models/order.model";
 import { PaymentStatusId } from "../constants";
 import Cart from "../models/cart.model";
 import { uploadToCloudinary } from "../utils";
+import mongoose from "mongoose";
 
 const createProduct = async (
   req: TypedRequestBody<IProduct>,
@@ -78,7 +79,7 @@ const getProductsRecommendation = async (
 
 const getProducts = async (
   req: TypedRequestBody<{
-    category?: number[];
+    categories?: number[];
     rating?: number[];
     availability?: boolean[];
     minPrice?: number;
@@ -90,7 +91,7 @@ const getProducts = async (
 ) => {
   try {
     const {
-      category,
+      categories,
       minPrice = 0,
       maxPrice,
       page = 0,
@@ -101,8 +102,10 @@ const getProducts = async (
     const { id, name, tags } = req.query;
 
     const filter: any = {};
-    if (category && category.length > 0) {
-      filter.category = { $in: [category] };
+    if (categories && categories.length > 0) {
+      filter.category = {
+        $in: categories.map((id) => new mongoose.Types.ObjectId(id)),
+      };
     }
     if (minPrice) {
       filter.price = { $gte: minPrice };
@@ -115,7 +118,15 @@ const getProducts = async (
       filter.rating = { $in: rating };
     }
     if (availability && availability.length > 0) {
-      filter.availability = { $in: availability };
+      if (availability?.length > 1) {
+        filter.$or = [{ quantity: { $gt: 0 } }, { quantity: { $lte: 0 } }];
+      }
+      if (availability?.length === 1 && availability[0] === true) {
+        filter.quantity = { $gt: 0 };
+      }
+      if (availability?.length === 1 && availability[0] === false) {
+        filter.quantity = { $lte: 0 };
+      }
     }
 
     let products;
