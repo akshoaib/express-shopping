@@ -109,14 +109,50 @@ const getAllOrders = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { page = 1, limit = 10 } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      orderStatus,
+      paymentStatus,
+      customer_name,
+      total,
+    } = req.query;
 
-    const orders = await Order.find({})
+    const filter: any = {};
+    if (Number(orderStatus) !== 0) {
+      filter.orderStatus = {
+        $eq: orderStatus,
+      };
+    }
+    if (Number(paymentStatus) !== 0) {
+      filter.paymentStatus = {
+        $eq: paymentStatus,
+      };
+    }
+    if (Number(total) !== 0) {
+      console.log("kkkkk", total);
+
+      filter.totalAmount = {
+        $eq: Number(total),
+      };
+    }
+
+    let orders = await Order.find(filter)
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit))
       .populate("user", "-password")
       .lean();
 
+    if (typeof customer_name === "string" && customer_name.trim() !== "") {
+      console.log(JSON.stringify(orders, null, 2));
+
+      orders = orders.filter((order) => {
+        return (
+          (order.user as any)?.firstName?.toLowerCase() ===
+          customer_name.toLowerCase()
+        );
+      });
+    }
     const addressess = await Address.findOne({ user: req.user?._id });
     let ordersWithAddress;
     if (addressess?.addressList && addressess.addressList.length > 0) {
