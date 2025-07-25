@@ -343,7 +343,9 @@ const rateProduct = async (
             comment,
           },
         },
-        rating: (product.rating + rating) / (product.reviews.length + 1),
+        rating: Math.round(
+          (product.rating + rating) / (product.reviews.length + 1)
+        ),
       }
     );
     res
