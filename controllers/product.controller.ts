@@ -86,6 +86,7 @@ const getProducts = async (
     maxPrice?: number;
     page?: number;
     limit?: number;
+    name?: string;
   }>,
   res: Response
 ) => {
@@ -98,6 +99,7 @@ const getProducts = async (
       limit = 1000,
       rating,
       availability,
+      name: productName,
     } = req.body;
     const { id, name, tags } = req.query;
 
@@ -106,6 +108,9 @@ const getProducts = async (
       filter.category = {
         $in: categories.map((id) => new mongoose.Types.ObjectId(id)),
       };
+    }
+    if (productName) {
+      filter.name = { $regex: productName.trim(), $options: "i" };
     }
     if (minPrice) {
       filter.price = { $gte: minPrice };

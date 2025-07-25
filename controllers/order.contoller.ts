@@ -147,10 +147,10 @@ const getAllOrders = async (
       console.log(JSON.stringify(orders, null, 2));
 
       orders = orders.filter((order) => {
-        return (
-          (order.user as any)?.firstName?.toLowerCase() ===
-          customer_name.toLowerCase()
-        );
+        const firstName = (order.user as any)?.firstName?.toLowerCase() || "";
+        const lastName = (order.user as any)?.lastName?.toLowerCase() || "";
+        const fullName = `${firstName} ${lastName}`.trim();
+        return fullName.includes(customer_name.toLowerCase());
       });
     }
     const addressess = await Address.findOne({ user: req.user?._id });
