@@ -144,8 +144,6 @@ const getAllOrders = async (
       .lean();
 
     if (typeof customer_name === "string" && customer_name.trim() !== "") {
-      console.log(JSON.stringify(orders, null, 2));
-
       orders = orders.filter((order) => {
         const firstName = (order.user as any)?.firstName?.toLowerCase() || "";
         const lastName = (order.user as any)?.lastName?.toLowerCase() || "";
@@ -153,19 +151,28 @@ const getAllOrders = async (
         return fullName.includes(customer_name.toLowerCase());
       });
     }
-    const addressess = await Address.findOne({ user: req.user?._id });
+
     let ordersWithAddress;
-    if (addressess?.addressList && addressess.addressList.length > 0) {
-      ordersWithAddress = orders.map((order) => {
+    ordersWithAddress = await Promise.all(
+      orders.map(async (order) => {
+        const userId =
+          typeof order.user === "object" &&
+          order.user !== null &&
+          "_id" in order.user
+            ? (order.user as any)._id
+            : order.user;
+        const addressess = await Address.findOne({ user: userId?.toString() });
+
         const address = addressess?.addressList.find(
           (a) => a?._id.toString() === order?.address.toString()
         );
+
         return {
           ...order,
           address: address || null,
         };
-      });
-    }
+      })
+    );
 
     const totalOrders = await Order.countDocuments();
 
