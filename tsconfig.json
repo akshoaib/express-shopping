@@ -2,9 +2,12 @@
   "compilerOptions": {
     "outDir": "./dist", // Ensure compiled files are in the correct directory
     "target": "ES2015",
+    "module": "commonjs", // or another appropriate module type
     "rootDir": ".", // Your TypeScript source directory
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["./**/*"],
   "exclude": ["node_modules"]
