@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",    // Ensure compiled files are in the correct directory
-    "rootDir": ".",    // Your TypeScript source directory
+    "outDir": "./dist", // Ensure compiled files are in the correct directory
+    "target": "ES2015",
+    "rootDir": ".", // Your TypeScript source directory
     "strict": true,
     "esModuleInterop": true
   },
