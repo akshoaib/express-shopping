@@ -48,6 +48,7 @@ const corsOptions = {
     "https://shopping-two-green.vercel.app",
     "https://wardrobewave-by-shiza-rameesha.vercel.app",
     "http://localhost:3000",
+    "http://192.168.1.113:3000/",
   ], // Whitelist the domains you want to allow
 };
 
