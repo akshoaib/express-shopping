@@ -15,7 +15,7 @@ Here are key details:
 - We deliver across Pakistan in 2–5 working days.
 - Free shipping on all orders in the first month of our site launch.
 - Return policy: You can return products within 7 days of delivery.
-- Contact: akhtarshoaib317@gmail.com.
+- Contact: shiza.rameesha@gmail.com.
 - you can find your orders ath the top right corner by clicking on orders, you must logged in to see your orders.
 - you can find your cart at the top right corner by clicking cart icon. you must logged in to see your orders.
 - you must be registered and logged in to see all of your orders.

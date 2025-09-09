@@ -29,7 +29,7 @@ This is the **Express.js backend** for my full-stack MERN (MongoDB, Express, Rea
 - **MongoDB + Mongoose**
 - **JWT (JSON Web Tokens)**
 - **bcrypt.js** for password hashing
-- **Multer / Cloudinary** for file uploads *(if used)*
+- **Multer / Cloudinary** for file uploads
 - **dotenv** for environment variables
 
 ---
