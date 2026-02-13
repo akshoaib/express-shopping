@@ -1,4 +1,4 @@
-import express, { Application, Request, Response, NextFunction } from "express";
+import express, { Application } from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import productRoutes from "./routes/product.route";
@@ -53,16 +53,16 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions)); // Use the cors middleware with your options
-
+const dns = require('node:dns/promises');   // or just require('dns') in older Node
+dns.setServers(['1.1.1.1', '8.8.8.8']);
 mongoose
-  .connect(
-    process.env.MONGO_URI ||
-      "mongodb+srv://wemircehan3:shoaib@cluster0.emdoe.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-  )
+  .connect("mongodb+srv://wemircehan3:3qZZn9NCtiGBzkP6@cluster0.emdoe.mongodb.net")
+
   .then(() => console.log("database connected!"))
   .catch((err: Error) => console.error("database connection error:", err));
-
+// test?retryWrites=true&w=majority
 server.listen(5000);
+console.log("Server is running on port 5000");
 
 app.use(productRoutes);
 app.use(userRoutes);
