@@ -11,6 +11,8 @@ import supportRoutes from "./routes/support.routes";
 import cors from "cors";
 import http from "http";
 import { Server as SocketIOServer } from "socket.io";
+import { errorHandler } from "./middlewares/errorMiddleware";
+import { errorLogger, requestLogger } from "./logger";
 
 dotenv.config();
 
@@ -38,6 +40,10 @@ io.on("connection", (socket) => {
 app.set("io", io);
 
 app.use(express.json());
+
+
+app.use(requestLogger);
+
 app.use("/uploads", express.static("uploads"));
 
 const corsOptions = {
@@ -63,6 +69,8 @@ mongoose
 // test?retryWrites=true&w=majority
 server.listen(5000);
 console.log("Server is running on port 5000");
+app.use(errorLogger);
+
 
 app.use(productRoutes);
 app.use(userRoutes);
@@ -71,3 +79,5 @@ app.use(cartRoutes);
 app.use(orderRoutes);
 app.use(addressRoutes);
 app.use(supportRoutes);
+
+app.use(errorHandler)

@@ -12,13 +12,15 @@ import {
   getProductsRecommendation,
 } from "../controllers/product.controller";
 import { adminRoleMiddleware, authMiddleware, uploadImage } from "../utils";
+import { asyncHandler } from "../middlewares/asyncHandler";
 
 router.post(
   "/product/create",
   authMiddleware,
   adminRoleMiddleware,
   uploadImage.array("images"),
-  (req: Request, res: Response, next: NextFunction) => createProduct(req, res)
+  asyncHandler(createProduct)
+  // (req: Request, res: Response, next: NextFunction) => asyncHandler(createProduct)(req, res, next)
 );
 
 router.post("/product/get-all", async (req: Request, res: Response) => {
