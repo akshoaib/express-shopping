@@ -8,6 +8,7 @@ import cartRoutes from "./routes/cart.route";
 import orderRoutes from "./routes/order.routes";
 import addressRoutes from "./routes/address.routes";
 import supportRoutes from "./routes/support.routes";
+import toolCallRoutes from "./routes/tool-call.routes";
 import cors from "cors";
 import http from "http";
 import { Server as SocketIOServer } from "socket.io";
@@ -61,14 +62,16 @@ const corsOptions = {
 app.use(cors(corsOptions)); // Use the cors middleware with your options
 const dns = require('node:dns/promises');   // or just require('dns') in older Node
 dns.setServers(['1.1.1.1', '8.8.8.8']);
+// const uri = "mongodb+srv://wemircehan3:3qZZn9NCtiGBzkP6@cluster0.9y57wx6.mongodb.net/?appName=Cluster0";
 mongoose
   .connect("mongodb+srv://wemircehan3:3qZZn9NCtiGBzkP6@cluster0.emdoe.mongodb.net")
+  // mongodb+srv://wemircehan3:<db_password>@cluster0.emdoe.mongodb.net/?appName=Cluster0
 
   .then(() => console.log("database connected!"))
   .catch((err: Error) => console.error("database connection error:", err));
 // test?retryWrites=true&w=majority
-server.listen(5000);
-console.log("Server is running on port 5000");
+app.listen(3000);
+console.log("Server is running on port 3000");
 app.use(errorLogger);
 
 
@@ -79,5 +82,5 @@ app.use(cartRoutes);
 app.use(orderRoutes);
 app.use(addressRoutes);
 app.use(supportRoutes);
-
+app.use(toolCallRoutes);
 app.use(errorHandler)
