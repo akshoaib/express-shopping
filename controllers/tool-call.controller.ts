@@ -19,6 +19,65 @@ const getProductByCategoryName = async (categoryName: string) => {
   }
 };
 
+const searchProductsByPrice = async ({
+  category,
+  minPrice,
+  maxPrice,
+}: {
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+}) => {
+  try {
+    const query: any = {};
+
+    // Category filter
+    if (category) {
+      query["category.name"] = {
+        $regex: category,
+        $options: "i",
+      };
+    }
+
+    // Price filter
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      query.price = {};
+
+      if (minPrice !== undefined) {
+        query.price.$gte = minPrice;
+      }
+
+      if (maxPrice !== undefined) {
+        query.price.$lte = maxPrice;
+      }
+    }
+
+    const products = await Product.find(query);
+
+    if (!products.length) {
+      return {
+        success: false,
+        message: "No products found",
+        products: [],
+      };
+    }
+
+    return {
+      success: true,
+      count: products.length,
+      products,
+    };
+  } catch (error) {
+    console.error(error);
+
+    return {
+      success: false,
+      message: "Internal server error",
+      products: [],
+    };
+  }
+};
+
 export const toolCalling = async (
   req: Request,
   res: Response,
@@ -46,6 +105,29 @@ export const toolCalling = async (
               },
             },
             required: ["categoryName"],
+            additionalProperties: false,
+          },
+        },
+        {
+          type: "function",
+          strict: true,
+          name: "searchProductsByPrice",
+          description:
+            "Search products by price such as 4000, 10000, 15000 etc.",
+          parameters: {
+            type: "object",
+            properties: {
+              category: {
+                type: "string",
+              },
+              minPrice: {
+                type: "number",
+              },
+              maxPrice: {
+                type: "number",
+              },
+            },
+            additionalProperties: false,
           },
         },
       ],
@@ -67,6 +149,15 @@ export const toolCalling = async (
 
     if (toolCall.name === "searchProductsByCategory") {
       toolResult = await getProductByCategoryName(args.categoryName);
+    }
+
+    if (toolCall.name === "searchProductsByPrice") {
+      console.log(":::::::::::::::PRICE:::::::::::::::::::::::");
+
+      toolResult = await searchProductsByPrice(
+        args.operator,
+        parseFloat(args.price),
+      );
     }
 
     const finalResponse = await openai.responses.create({
